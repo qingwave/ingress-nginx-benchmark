@@ -1,0 +1,157 @@
+
+apiVersion: v1
+data:
+  app.conf: |
+    upstream backend {
+        keepalive 30;
+        server 10.177.2.194:80;
+    }
+
+    server {
+        listen 80 default_server;
+
+        location / {
+          root  /usr/share/nginx/html;
+          index index.html;
+        }
+
+        location /bin/ {
+          root /usr/share/nginx/;
+        }
+    }
+
+    server {
+        listen 80;
+        listen 443  ssl http2 ;
+
+        server_name my.nginx.svc;
+
+        location / {
+            proxy_redirect off;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_http_version 1.1;
+            proxy_set_header Connection "";
+            proxy_pass http://backend;
+        }
+    }
+
+kind: ConfigMap
+metadata:
+  name: ns-app-conf
+  namespace: default
+---
+apiVersion: v1
+data:
+  nginx.conf: |+
+    user  nginx;
+    worker_processes  32;
+    worker_rlimit_nofile 1024000;
+    worker_cpu_affinity auto;
+    error_log  /var/log/nginx/error.log notice;
+    pid        /var/run/nginx.pid;
+    events {
+        worker_connections  100000;
+    }
+    http {
+        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for"';
+        sendfile        on;
+        tcp_nopush     on;
+        tcp_nodelay on;
+        access_log off;
+        keepalive_timeout  315;
+        keepalive_requests 10000000;
+        include /etc/nginx/conf.d/*.conf;
+    }
+kind: ConfigMap
+metadata:
+  name: ns-main-conf
+  namespace: default
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: nginx-server
+  name: nginx-server
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: nginx-server
+  strategy:
+  template:
+    metadata:
+      labels:
+        run: nginx-server
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: "c5-ocean-k8s-slave05-201811.bj"
+      containers:
+      - image: cr.d.xiaomi.net/kubernetes/nginx
+        imagePullPolicy: Always
+        name: nginx-server
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: app-config-volume
+          mountPath: /etc/nginx/conf.d
+        - name: main-config-volume
+          mountPath: /etc/nginx
+        - name: binary-payload
+          mountPath: /usr/share/nginx/bin
+      volumes: 
+      - name: app-config-volume
+        configMap:
+          name: ns-app-conf
+      - name: main-config-volume
+        configMap:
+          name: ns-main-conf
+      - name: binary-payload
+        configMap:
+          name: binary
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - operator: Exists
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-server
+  namespace: default
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    run: nginx-server
+  sessionAffinity: None
+  type: ClusterIP
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx-server
+  namespace: default
+spec:
+  rules:
+  - host: my.nginx-server.svc
+    http:
+      paths:
+      - backend:
+          serviceName: nginx-server
+          servicePort: 80
+        path: /
+status:
+  loadBalancer: {}

@@ -1,0 +1,140 @@
+
+apiVersion: v1
+data:
+  app.conf: |
+    server {
+      listen 80;
+      location / {
+        root /usr/share/nginx/bin;
+        # return 200; 
+      }
+      
+      location = /status {
+        stub_status; 
+      }
+    }
+kind: ConfigMap
+metadata:
+  name: app-conf
+  namespace: default
+---
+apiVersion: v1
+data:
+  nginx.conf: |+
+    user  nginx;
+    worker_processes  32;
+    worker_rlimit_nofile 102400;
+    error_log  /var/log/nginx/error.log notice;
+    pid        /var/run/nginx.pid;
+    events {
+        worker_connections  100000;
+    }
+    http {
+        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for"';
+        sendfile        on;
+        tcp_nopush     on;
+        tcp_nodelay on;
+        access_log off;
+        include /etc/nginx/conf.d/*.conf;
+    }
+kind: ConfigMap
+metadata:
+  name: main-conf
+  namespace: default
+---
+apiVersion: v1
+data:
+  1kb.bin: "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+kind: ConfigMap
+metadata:
+  name: binary
+  namespace: default
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: hello-world
+    run: my-nginx
+  name: my-nginx
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: my-nginx
+  strategy:
+  template:
+    metadata:
+      labels:
+        run: my-nginx
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: "c5-ocean-k8s-slave03-201811.bj"
+      containers:
+      - image: cr.d.xiaomi.net/kubernetes/nginx
+        imagePullPolicy: Always
+        name: my-nginx
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: app-config-volume
+          mountPath: /etc/nginx/conf.d
+        - name: main-config-volume
+          mountPath: /etc/nginx
+        - name: binary-payload
+          mountPath: /usr/share/nginx/bin
+      volumes: 
+      - name: app-config-volume
+        configMap:
+          name: app-conf
+      - name: main-config-volume
+        configMap:
+          name: main-conf
+      - name: binary-payload
+        configMap:
+          name: binary
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - operator: Exists
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-nginx
+  namespace: default
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    run: my-nginx
+  sessionAffinity: None
+  type: ClusterIP
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: my-nginx
+  namespace: default
+spec:
+  rules:
+  - host: my.nginx.svc
+    http:
+      paths:
+      - backend:
+          serviceName: my-nginx
+          servicePort: 80
+        path: /
+status:
+  loadBalancer: {}

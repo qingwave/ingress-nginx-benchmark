@@ -1,0 +1,20 @@
+apiVersion: v1
+data:
+  worker-processes: "32"
+  max-worker-open-files: "204800"
+  max-worker-connections: "100000"
+  worker-cpu-affinity: "auto"
+  disable-access-log: "true"
+  keep-alive: "200"
+  keep-alive-requests: "1000000"
+  upstream-keepalive-connections: "512"
+  upstream-keepalive-requests: "10000000"
+  upstream-keepalive-timeout: "200"
+kind: ConfigMap
+metadata:
+  labels:
+    app: ingress-controller
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+  name: nginx-configuration
+  namespace: kube-system
