@@ -5,7 +5,12 @@ data:
     server {
       listen 80;
       location / {
-        root /usr/share/nginx/bin;
+          root  /usr/share/nginx/html;
+          index index.html;
+      }
+
+      location /bin {
+        root /usr/share/nginx/;
         # return 200; 
       }
       
@@ -52,11 +57,10 @@ metadata:
   name: binary
   namespace: default
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: hello-world
     run: my-nginx
   name: my-nginx
   namespace: default
@@ -71,10 +75,8 @@ spec:
       labels:
         run: my-nginx
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: "c5-ocean-k8s-slave03-201811.bj"
       containers:
-      - image: cr.d.xiaomi.net/kubernetes/nginx
+      - image: nginx
         imagePullPolicy: Always
         name: my-nginx
         ports:

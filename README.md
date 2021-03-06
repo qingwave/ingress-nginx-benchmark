@@ -2,7 +2,7 @@
 
 通过wrk测试Ingress性能
 ```bash
-wrk -t8 -c1000 -d100s --latency http://my.nginx.svc/1kb.bin
+wrk -t8 -c1000 -d100s --latency http://my.nginx.svc/bin/1kb.bin
 ```
 
 - [ingress-nginx.yaml](./ingress-nginx.yaml): ingress-nginx configmap

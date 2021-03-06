@@ -89,10 +89,8 @@ spec:
       labels:
         run: nginx-server
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: "c5-ocean-k8s-slave05-201811.bj"
       containers:
-      - image: cr.d.xiaomi.net/kubernetes/nginx
+      - image: nginx
         imagePullPolicy: Always
         name: nginx-server
         ports:
